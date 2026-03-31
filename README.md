@@ -32,7 +32,7 @@ We were handed the company's raw data warehouse — unclean, unvalidated — and
 
 ## My Contributions
 
-This was a four-person team project. I personally owned the following 6 challenges:
+This was a four-person team project.
 
 | Challenge | Topic | Key Output |
 |-----------|-------|------------|
@@ -43,7 +43,6 @@ This was a four-person team project. I personally owned the following 6 challeng
 | C09 | Repeat Customer Behaviour — retention, LTV, channel mix | 2.67x LTV multiple for repeat customers |
 | C10 | Capstone & Strategic Roadmap — three strategic recommendations, $100K budget allocation | $29,074+/month projected return |
 
-I also reviewed and validated the SQL and findings for C03, C04, C05, and C07 as part of the team QA process.
 
 ---
 
@@ -52,8 +51,8 @@ I also reviewed and validated the SQL and findings for C03, C04, C05, and C07 as
 | Name | Role |
 |------|------|
 | Zeina Ahmed | Conversion Funnel Analysis (C05) |
-| Toka Gabr | Efficiency & Resilience (C03, C04) |
-| Omar El Yemani | Product Performance (C07) |
+| Toka Gabr | Efficiency & Resilience (C03, C04, C07) |
+| Omar El Yemani | Product Performance (C09) |
 | Saleh Hossam | Data Quality, Growth Story, A/B Test ROI, Cross-Sell, Repeat Customers, Capstone |
 
 ---

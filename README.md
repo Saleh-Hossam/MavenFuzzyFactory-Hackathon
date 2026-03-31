@@ -53,7 +53,7 @@ This was a four-person team project.
 | Zeina Ahmed | Conversion Funnel Analysis (C05) |
 | Toka Gabr | Efficiency & Resilience (C03, C04, C07) |
 | Omar El Yemani | Product Performance (C09) |
-| Saleh Hossam | Data Quality, Growth Story, A/B Test ROI, Cross-Sell, Repeat Customers, Capstone |
+| Saleh Hossam | Data Quality, Growth Story, A/B Test ROI, Cross-Sell, Capstone |
 
 ---
 

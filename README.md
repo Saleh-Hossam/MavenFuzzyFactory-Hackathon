@@ -1,5 +1,5 @@
 # MavenFuzzyFactory Hackathon Analysis
-**rowth story analysis for a CEO investor pitch — MySQL + Power BI, starting from an unvalidated warehouse**
+**Growth story analysis for a CEO investor pitch — MySQL + Power BI, starting from an unvalidated warehouse**
 
 DEBI Business Analytics Hackathon · Zesto Team · March 2026 · **Top 3 Finish**
 

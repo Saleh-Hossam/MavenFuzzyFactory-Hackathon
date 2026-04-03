@@ -1,4 +1,222 @@
 # MavenFuzzyFactory Hackathon Analysis
+**rowth story analysis for a CEO investor pitch — MySQL + Power BI, starting from an unvalidated warehouse**
+
+DEBI Business Analytics Hackathon · Zesto Team · March 2026 · **Top 3 Finish**
+
+---
+
+> I owned 5 of 10 challenges individually. Team members' work is listed for context only and clearly labelled.
+
+---
+
+## The Brief
+
+MavenFuzzyFactory's CEO was walking into an investor meeting. The question wasn't "how big are we" — it was "can you prove the growth was efficient?" We were handed a raw data warehouse, no cleaning instructions, and told to build a 10-minute investor pitch from it.
+
+Four analysts, ten challenges, a 10-minute pitch, and judges who asked follow-up questions we hadn't prepared for.
+---
+
+## My Work
+
+| Challenge | Question answered | Business impact |
+|-----------|-------------------|-----------------|
+| C01 — Data Quality | Is this data safe to build a pitch on? | 34 bad records identified and excluded; 3-rule governance framework built before any analysis ran |
+| C02 — Growth Story | Did we grow efficiently, not just fast? | Orders (96×) outpaced sessions (38×) — unit economics improved, not just volume |
+| C06 — A/B Test ROI | Which UX investments paid off? | Billing page redesign: +17.18pp lift = ~$27,800/month ongoing since late 2012 |
+| C08 — Cross-Sell | Are customers leaving money in the cart? | $74,621 in 3.5 months; Birthday Panda drives highest attach rate (22.41%) despite lower volume |
+| C10 — Capstone | Where should $100K go next? | Three prioritised investments; $29,074+/month projected return; two material risks flagged |
+
+---
+
+## Numbers That Drove the Pitch
+
+| Finding | Number |
+|---------|--------|
+| Session growth (Q1 2012 → Q4 2014) | 38× (1,879 → 72,048) |
+| Order growth over same period | 96× (59 → 5,681) |
+| Revenue per session growth | +220% ($1.57 → $5.03) |
+| Free + brand order share built from zero | 33.5% |
+| Biggest funnel leak | Product detail → cart at 43.4% conversion |
+| Billing page A/B monthly value | ~$27,800/month ongoing |
+| Cross-sell revenue (3.5 months) | $74,621 |
+| Best cross-sell attach rate | 22.41% (Birthday Panda + Mini Bear) |
+| Repeat customer LTV multiple | 2.67× vs new customers |
+| Paid nonbrand repeat sessions | Exactly 0 |
+| Total hard data exclusions | 34 records / 0.002% of dataset |
+| $100K capstone projected return | $29,074+/month |
+
+---
+
+## Three Non-Obvious Insights
+
+**1. Repeat customers never come back through paid — and that's actually the point"**
+Repeat customers return through direct and organic — paid nonbrand repeat sessions are exactly zero. This means CAC on repeat revenue is effectively $0, and the true ROI of paid acquisition is being systematically understated. Every repeat purchase should be credited back to the original acquisition campaign.
+
+**2. The billing page win is real, but the more uncomfortable read is what it says about the years before the test ran**
+17.18pp lift since late 2012. By end of 2014, that's roughly $672,000 in incremental revenue from one UX change. The more important question it raises: what else in the funnel hasn't been tested? The product detail → cart step sitting at 43.4% is the obvious next candidate.
+
+**3. TThe cross-sell attach rate gap by product is small enough to ignore — but it probably shouldn't be**
+Birthday Panda buyers (occasion-specific, intentional purchase) attach the Mini Bear at 22.41% — outperforming Mr. Fuzzy buyers at 20.89% despite lower overall volume. A customer buying a birthday gift is a different decision context than a first-time default buyer. The cross-sell engine leaves money on the table by treating both the same.
+
+---
+
+## SQL Samples
+
+### C09 — Repeat Customer LTV
+```sql
+SELECT
+    repeat_customers.user_id,
+    COUNT(DISTINCT o.order_id)          AS total_orders,
+    SUM(o.price_usd - o.cogs_usd)      AS lifetime_margin,
+    MIN(o.created_at)                   AS first_order,
+    MAX(o.created_at)                   AS last_order
+FROM (
+    SELECT user_id
+    FROM orders
+    WHERE price_usd > 0
+    GROUP BY user_id
+    HAVING COUNT(DISTINCT order_id) > 1
+) AS repeat_customers
+LEFT JOIN orders o
+    ON repeat_customers.user_id = o.website_session_id
+    AND o.price_usd > 0
+GROUP BY repeat_customers.user_id;
+```
+
+### C06 — Billing Page Conversion Lift
+```sql
+SELECT
+    saw_billing_v2,
+    COUNT(DISTINCT session_id)                          AS sessions,
+    COUNT(DISTINCT order_id)                            AS orders,
+    ROUND(COUNT(DISTINCT order_id) /
+          COUNT(DISTINCT session_id) * 100, 2)          AS conversion_rate
+FROM billing_test_sessions
+GROUP BY saw_billing_v2;
+```
+
+### C08 — Cross-Sell Attach Rate by Primary Product
+```sql
+SELECT
+    oi_primary.product_id                               AS primary_product,
+    COUNT(DISTINCT oi_primary.order_id)                 AS primary_orders,
+    COUNT(DISTINCT oi_xsell.order_id)                   AS xsell_orders,
+    ROUND(COUNT(DISTINCT oi_xsell.order_id) /
+          COUNT(DISTINCT oi_primary.order_id) * 100, 2) AS attach_rate
+FROM order_items oi_primary
+LEFT JOIN order_items oi_xsell
+    ON oi_primary.order_id = oi_xsell.order_id
+    AND oi_xsell.product_id = 4
+    AND oi_xsell.product_id != 99
+WHERE oi_primary.is_primary_item = 1
+    AND oi_primary.product_id != 99
+    AND oi_primary.created_at >= '2014-02-12'
+GROUP BY oi_primary.product_id;
+```
+
+---
+
+## Data Quality
+
+All queries apply consistent cleaning rules across every challenge:
+
+```sql
+-- Text standardisation
+LOWER(TRIM(utm_source))
+LOWER(TRIM(utm_campaign))
+LOWER(TRIM(device_type))
+
+-- Bad price exclusion in JOIN, not WHERE
+-- Using WHERE silently converts LEFT JOINs to INNER JOINs
+LEFT JOIN orders o
+    ON ws.website_session_id = o.website_session_id
+    AND o.price_usd > 0
+
+-- Orphan product exclusion (product_id = 99 is a test artifact)
+WHERE oi.product_id != 99
+-- Safe version for LEFT JOINs:
+AND (oi.product_id != 99 OR oi.product_id IS NULL)
+
+-- Organic vs direct traffic
+COALESCE(TRIM(http_referer), '')
+```
+
+**3-Step Governance Framework:**
+1. At ingestion — reject any record where price_usd ≤ 0 or primary key already exists
+2. At load — run automated duplicate detection on user_id + timestamp combinations
+3. At analysis — run a standard validation script before every sprint
+
+---
+
+## Team Contributions
+
+| Member | Challenges |
+|--------|-----------|
+| Zeina Ahmed | C05 — Conversion Funnel |
+| Toka Gabr | C03, C04, C07 — Efficiency, Resilience, Product Performance |
+| Omar El Yemani | C09 — Product Performance (partial) |
+| Saleh Hossam | C01, C02, C06, C08, C09, C10 |
+
+---
+
+## Tools
+
+| Tool | Purpose |
+|------|---------|
+| MySQL / MySQL Workbench | All data extraction, cleaning, and analysis |
+| Power BI | Dashboard and visual reporting |
+| PowerPoint | 20-slide investor presentation |
+
+---
+
+## Repository Structure
+
+```
+MavenFuzzyFactory-Hackathon/
+│
+├── sql/
+│   ├── challenge_01_data_quality.sql
+│   ├── challenge_02_the_growth_story.sql
+│   ├── challenge_03_&_04_efficiency_resilience.sql
+│   ├── challenge_05_conversion_funnel.sql
+│   ├── challenge_06_website_A_B_Test_ROI.sql
+│   ├── challenge_07_product_performance.sql
+│   ├── challenge_08_Pre_Post_Cross_Sell_Feature_Launch.sql
+│   ├── challenge_09_repeat_customer_behaviour.sql
+│   └── challenge_10_capstone_strategic_roadmap.sql
+│
+├── screenshots/
+│   └── dashboard_overview.png
+│
+├── data_quality/
+│   └── Data_Quality_Documentation.docx
+│
+├── presentation/
+│   └── team_zesto_presentation.pptx
+│
+└── README.md
+```
+
+---
+
+## How to Run
+
+```sql
+USE mavenfuzzyfactory;
+SOURCE sql/challenge_01_data_quality.sql;
+```
+
+1. Import the MavenFuzzyFactory schema into MySQL Workbench
+2. Run queries in order: C01 → C02 → C03/C04 → C05 → C06 → C07 → C08 → C09 → C10
+3. Export results as CSV
+4. Open Power BI dashboard and refresh data source
+
+> The raw dataset is proprietary to Maven Analytics and is not included in this repository.
+
+---
+
+*Zesto Team — Zeina Ahmed · Toka Gabr · Omar El Yemani · Saleh Hossam*
+*DEBI Business Analytics Track · March 2026*# MavenFuzzyFactory Hackathon Analysis
 **E-commerce growth analysis of MavenFuzzyFactory (2012–2015)**
 DEBI Business Analytics Hackathon · Zesto Team · March 2026 · **Top 3 Finish**
 

@@ -153,9 +153,9 @@ COALESCE(TRIM(http_referer), '')
 | Member | Challenges |
 |--------|-----------|
 | Zeina Ahmed | C05 — Conversion Funnel |
-| Toka Gabr | C03, C04, C07 — Efficiency, Resilience, Product Performance |
-| Omar El Yemani | C09 — Product Performance (partial) |
-| Saleh Hossam | C01, C02, C06, C08, C09, C10 |
+| Toka Gabr | C03, C04  — Efficiency, Resilience, Product Performance |
+| Omar El Yemani | C09 ,07) |
+| Saleh Hossam | C01, C02, C06, C08, C10 |
 
 ---
 
@@ -258,7 +258,6 @@ This was a four-person team project.
 | C02 | Overall Growth Story — sessions & orders by quarter, full business lifecycle | 38x session growth, 96x order growth documented |
 | C06 | Website A/B Test ROI — landing page and billing page test analysis | Billing page: +17.18pp lift = ~$27,800/month ongoing |
 | C08 | Cross-Sell Analysis — Mini Bear attachment rates, AOV impact | $74,621 in cross-sell revenue in 3.5 months |
-| C09 | Repeat Customer Behaviour — retention, LTV, channel mix | 2.67x LTV multiple for repeat customers |
 | C10 | Capstone & Strategic Roadmap — three strategic recommendations, $100K budget allocation | $29,074+/month projected return |
 
 
